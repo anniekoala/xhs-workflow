@@ -1,11 +1,11 @@
 ---
 name: xiaohongshu-content
-description: Produce Xiaohongshu (小红书 / RED / Little Red Book) posts that align with the 2026 algorithm (CES scoring, 搜推互通 search-recommend coupling, 流量平权 traffic equality). Apply when generating Xiaohongshu titles, captions, body copy, tags, or post copy; when adapting vlog or video content into Xiaohongshu format; or whenever the user mentions 小红书, RED, 笔记, 文案, 爆款, or asks for help with Xiaohongshu publishing. Includes platform-tuned title formulas, body templates, tag strategy, sensitive-keyword avoidance list, engagement hooks for the 2026 CES formula, a pre-publish checklist, and a production pipeline that delegates video editing to the video-use skill and motion graphics / cover design to the hyperframes ecosystem (animejs, gsap, lottie, waapi, three, tailwind).
+description: Produce Xiaohongshu (小红书 / RED / Little Red Book) posts that align with the 2026 algorithm (CES scoring, 搜推互通 search-recommend coupling, 流量平权 traffic equality). Apply when generating Xiaohongshu titles, captions, body copy, tags, carousel copy, cover text, or post copy; when adapting vlog, photo sets, or video content into Xiaohongshu format; or whenever the user mentions 小红书, RED, 笔记, 文案, 图文轮播, 爆款, or asks for help with Xiaohongshu publishing. Covers three production tracks — video notes, information image-text carousels (图文轮播), and opinion/emotional/narrative image-text notes (观点/叙事型图文). Includes a content-recommendation rulebook (what gets pushed vs suppressed, what is engaging), an audit-compliance ruleset with a niche red-line map for identity/immigration topics and a 薯条/0-exposure limit-detection guide, platform-tuned title formulas, body templates, tag strategy, sensitive-keyword avoidance list, engagement hooks for the 2026 CES formula, a best-practices checklist, a pre-publish checklist, 限流 diagnostics, and a production pipeline that delegates video editing to the video-use skill and motion graphics / cover design to the hyperframes ecosystem (animejs, gsap, lottie, waapi, three, tailwind).
 ---
 
 # Xiaohongshu Content Skill
 
-This skill produces Xiaohongshu (小红书) post copy that survives 2026 platform rules and aligns with current viral patterns. Apply it whenever the user asks for Xiaohongshu titles, captions, body, tags, or vlog write-ups. **If unsure, apply this skill** — generic copywriting fails Xiaohongshu's 2026 distribution rules in specific, predictable ways.
+This skill produces Xiaohongshu (小红书) post copy that survives 2026 platform rules and aligns with current viral patterns. Apply it whenever the user asks for Xiaohongshu titles, captions, body, tags, carousel page text, cover text, or vlog write-ups. **If unsure, apply this skill** — generic copywriting fails Xiaohongshu's 2026 distribution rules in specific, predictable ways.
 
 ---
 
@@ -13,8 +13,11 @@ This skill produces Xiaohongshu (小红书) post copy that survives 2026 platfor
 
 Apply automatically when the user:
 - Asks for Xiaohongshu / 小红书 / RED post copy, 文案, 笔记, 标题, 标签
-- Wants to adapt a vlog, photo set, or article into Xiaohongshu format
+- Wants to adapt a vlog, photo set, screenshot set, travel album, or article into Xiaohongshu format
+- Mentions 图文轮播 / 图文笔记 / 轮播图 / 封面文案 / 每页小字 / carousel
+- Wants an 观点 / 情绪 / 感悟 / 经历类图文（personal-opinion or narrative note）
 - Asks "why no views" / "limited traffic" / 限流 diagnostics
+- Asks about platform rules: 什么会被推荐 / 什么吸引人 / 违禁项 / 审核合规 / best practice
 - Asks for content strategy for Xiaohongshu
 
 Do **not** apply for: other platforms (Douyin, Instagram, TikTok, Twitter/X). Those have different algorithms and conventions.
@@ -29,7 +32,8 @@ This skill owns **strategy** (what to write, why, how to dodge limits). It does 
 |---|---|---|
 | Cut raw footage into a finished vlog | `video-use` | Transcript-driven cuts, automatic ffmpeg orchestration, subtitle SRT generation |
 | Burn subtitles into the video | `video-use` | Xiaohongshu does **not** support sidecar SRT — subtitles must be hardcoded |
-| Design cover with big title text | `hyperframes` + `animejs` / `gsap` | Use static frame export for the cover image |
+| Design cover with big title text | `xiaohongshu-photo-cover` if available, otherwise `hyperframes` + `animejs` / `gsap` | Visual rendering only; this skill owns title, cover text, and caption copy |
+| Produce photo-carousel page copy | **This skill** | Cover headline, slide titles, page body, caption, and tags are copy strategy, not visual production |
 | TikTok / Xiaohongshu-style word-by-word captions | `hyperframes` | Built-in template for word-level karaoke captions; this style is trending in 2026 |
 | Animated lower-thirds, location pins, kinetic text | `gsap` / `animejs` / `waapi` | Pick by complexity — `waapi` for simple, `gsap` for timeline-heavy |
 | 3D opening title or volumetric scene | `three` / `typegpu` | Heavy; use only for premium one-off content |
@@ -38,15 +42,28 @@ This skill owns **strategy** (what to write, why, how to dodge limits). It does 
 
 **Default production pipeline** when user provides raw footage + a brief:
 
-1. **Cut** → invoke `video-use` to produce `final.mp4` + `subtitles.srt`
-2. **Burn subtitles** → still through `video-use` (Xiaohongshu requires hardcoded subs)
-3. **Cover** → invoke `hyperframes` to render a 3:4 (or 1:1) cover frame with title overlay
-4. **Copy** → use the formulas/templates in **this** skill (title, body, tags)
-5. **Bundle output** → assemble `final.mp4` + `cover.png` + `post.md` in the user's working folder
+Use a token-aware staged workflow. Do not jump straight into full scripting, rendering, and publishing unless the user explicitly says the direction is already locked.
 
-If the user only asks for copy (text only), skip steps 1–3 and produce step 4 alone.
+1. **Light inventory** → invoke `video-use` only far enough to create a compact source index: file names, durations, 1-line visual description, likely use, and 2-3 possible content directions. Prefer a 10-line `shotlist.md` plus targeted key frames over broad frame dumps.
+2. **Lock the brief** → ask the user to confirm the narrative arc, voiceover/script direction, target length, must-keep moments, must-cut moments, subtitle style, and BGM mood. Treat these as hard constraints once confirmed.
+3. **Cut one preview** → delegate to `video-use` to produce a first preview and subtitle backup. Keep generated logs, EDL, SRT, and verification output in `scratch/<note>/`, but only read the specific ranges needed for the current decision.
+4. **Batch feedback** → ask the user for 3-5 concrete changes per review round. Aim for 2-3 preview iterations before publishing. For ambiguous visual fixes, extract/inspect 3-5 frames before rendering another full preview.
+5. **Cover + copy** → once the cut is approved, create cover candidates and generate `post.md` using this skill's title/body/tag templates.
+6. **Bundle output** → place upload-ready assets in `published/<note>/`; keep transcripts, segment renders, previews, frame dumps, and other intermediate files in `scratch/<note>/`
 
----
+Token discipline for video projects:
+
+- Do not repeatedly read full `edl.json`, full SRT files, large terminal output, or entire project logs. Read only the relevant lines/ranges unless doing a final audit.
+- Let local tools (`ffmpeg`, `ffprobe`, render scripts) process video/audio bytes. The model should reason from short summaries, targeted frames, scripts, and user feedback.
+- If the user asks for a fast or low-cost pass, skip full contact sheets, animation experiments, and extra cover/BGM variants until the base cut is approved.
+
+**Default production pipeline** when user provides photos/screenshots + a brief:
+
+1. **Copy strategy** → use **Photo-carousel mode** in this skill to produce cover text, per-slide text, body, and tags
+2. **Cover/carousel visuals** → delegate visual rendering to `xiaohongshu-photo-cover` if available, otherwise `hyperframes`
+3. **Bundle output** → place rendered images + `post.md` in `published/<note>/`; keep design drafts and generated intermediates in `scratch/<note>/`; do not let the visual tool invent separate title/body copy
+
+If the user only asks for copy (text only), skip visual production and produce the relevant output template alone.
 
 ## Core 2026 platform model (3 facts agent must know)
 
@@ -79,6 +96,33 @@ The first 3 hours decide everything. Optimize title, cover, and first 3 seconds 
 - **Tactical consequence**: keywords must live in the first 1/3 of the title and appear 2–3 times in the first 100 characters of the body
 
 Also relevant: **流量平权** — accounts under 1K followers get equal initial pool access. Account size is not the bottleneck; content compliance is.
+
+---
+
+## 内容推荐规则（什么会被推荐 / 什么更吸引人）
+
+把上面的机制翻译成产出时能直接用的判断。这是用户问"什么内容会被推荐 / 什么更吸引人"的标准答案区。
+
+### 什么内容会被推荐（顺算法）
+- **受众标签清晰**：一眼能被机器归类（地点 / 人群 / 场景 / 身份），标签越清晰越好推
+- **选题有搜索量**：标题和正文命中真实被搜的关键词（搜推互通，搜索强 → 推荐强）
+- **高互动结构**：结尾有具体可答的问题 + 关注理由（评论×4、关注×8 是 CES 主力）
+- **高完播 / 高收藏**：信息型图文靠"可收藏"（清单 / 路线 / 价格），观点型图文靠"共鸣到想转发"
+- **账号垂直稳定**：同一账号持续发同一赛道，标签越纯，每条起量越快
+
+### 什么内容会被压（逆算法，即使不违规也没量）
+- **标签模糊**：机器不知道推给谁（泛泛的"分享生活 / 记录日常"）
+- **纯复述**：只描述画面或经历，没有视频 / 图片之外的增量信息
+- **无互动设计**：没有问题、没有关注钩，CES 上不去
+- **标题 / 封面无钩**：初审池 CTR 不达标（图文 2.5%），1 小时就出局
+- **操作扣权重**：频繁删改、同内容重发判重、蹭不相关热点
+
+### 什么内容更吸引人（点击 + 停留 + 互动）
+- **反差**：标题或封面制造预期落差（见 Title Formula 1）
+- **共鸣**：说出受众"想说却没说出口"的那句话（观点 / 情绪文的核心武器）
+- **信息增量**：让人"哦原来如此"，有收藏价值
+- **具体 > 形容词**：数字、价格、地名、时间、真实细节，永远比"很美 / 很棒"有效
+- **钩子前置**：第一行（feed 预览）和封面大字承担约 90% 的点击决策
 
 ---
 
@@ -162,6 +206,151 @@ Examples:
 
 ---
 
+## Photo-carousel mode（图文轮播模式）
+
+Use this mode when the deliverable is a Xiaohongshu image/carousel note rather than a video note. This skill owns the full copy layer:
+
+- Platform title
+- Cover headline/subtitle
+- Per-slide text
+- Body caption
+- Tags
+- Comment/follow CTA
+
+Visual tools (`xiaohongshu-photo-cover`, `hyperframes`, design apps) may render the cover and carousel, but must treat this skill's copy as source of truth.
+
+### Carousel structure
+
+Recommended length: **5–9 images**. If the user provides fewer images, keep the structure shorter instead of padding.
+
+1. **Cover image**: one clear promise or contradiction; max 2 text layers
+2. **Context slide**: why this note exists / who it is for
+3. **Value slides**: 3–6 pages, one idea per page
+4. **Save/share slide**: checklist, route, price, key takeaways, or comparison
+5. **Engagement slide**: one concrete question + follow reason
+
+### Cover text rules
+
+- Main headline: **8–14 Chinese characters** when possible
+- Subtitle: optional, **≤ 16 Chinese characters**
+- Cover text and platform title should **not be identical**. Cover optimizes CTR; title also carries search keywords.
+- Put the strongest concrete noun on the cover: place / price / mistake / route / day count / before-after.
+- Avoid absolute words from the avoidance list. Do not use "必看", "最全", "天花板", "封神", "王炸".
+
+Good cover patterns:
+- `[地点/人群]+真实体验`
+- `[数字]+个避坑/发现/瞬间`
+- `我以为 X，结果 Y`
+- `[具体物品/路线/费用]+到底值不值`
+
+### Per-slide text rules
+
+- Slide title: **≤ 12 Chinese characters**
+- Slide body: **≤ 28 Chinese characters** per text block
+- One slide = one point. Do not cram caption paragraphs onto images.
+- Every slide should add information, not just label the photo.
+- Use numbers, route names, prices, timestamps, sensory details, and personal judgment.
+- Last slide must ask a concrete question that invites a longer comment.
+
+### Caption rules for carousel
+
+The body caption should **not repeat every slide**. It should provide:
+
+1. Why this carousel matters
+2. Extra context not visible in the images
+3. One反认知 / personal insight
+4. A specific comment question
+5. A follow reason if this is part of a series
+
+Carousel notes have lower "完播" dependence than video, but stronger save/share potential. Optimize for **收藏** by making the last 1–2 slides useful as a checklist or decision aid.
+
+### Photo-carousel copy template
+
+```markdown
+## 图文轮播文案
+
+### 平台标题（3 选 1）
+1. [标题 A - 搜索关键词在前 1/3]
+2. [标题 B]
+3. [标题 C]
+
+### 封面文案
+主标题：[8–14 字]
+副标题：[可选，≤16 字]
+视觉备注：[主体/构图/大字位置]
+
+### 每页图上字
+P1 封面：[主标题] / [副标题]
+P2 [页标题]：[≤28 字页面文案]
+P3 [页标题]：[≤28 字页面文案]
+P4 [页标题]：[≤28 字页面文案]
+P5 [页标题]：[≤28 字页面文案]
+P6 收藏页：[清单/路线/价格/总结]
+P7 互动页：[具体问题 + 关注理由]
+
+### 正文（复制到正文框）
+[完整正文，按 carousel caption rules 写]
+
+### 标签（一次性粘贴）
+#标签1 #标签2 ... #标签N
+```
+
+---
+
+## 观点/叙事型图文模式（观点文 / 情绪文 / 经历文）
+
+Use this mode for personal-opinion, emotional, or narrative image-text notes — 个人感悟、心态转变、海外 / 职场 / 留学经历、价值观输出。这是海外生活、留学、职场、人生选择赛道的**主力爆款形态**，和 Photo-carousel mode（信息 / 攻略 / 清单）写法完全不同：
+
+- **轮播图文**靠"收藏"起量（清单、攻略、对比、避坑）
+- **观点 / 叙事图文**靠"共鸣 → 评论 / 转发"起量（说出受众心声）
+
+配图通常 1–4 张（人物 / 场景 / 纯色大字），正文是核心。
+
+### 观点/叙事文 vs 轮播文 怎么选
+| 你手里的东西 | 用哪个模式 |
+|---|---|
+| 攻略、清单、路线、价格、对比、避坑 | Photo-carousel mode |
+| 感悟、心态转变、一个观点、一段经历、价值观 | 观点/叙事型图文模式（本节）|
+
+### 标题（观点文倾向）
+观点文最吃 **共鸣式（Formula 5 原来…）** 和 **反差式（Formula 1）**。
+- ✅ `在硅谷待了14年 我终于不焦虑了`
+- ✅ `30+ 才想明白的一件事`
+- ✅ `原来不是所有人都要往上爬`
+
+关键词仍要在前 1/3；敏感选题用模糊词（见「审核合规规则」的赛道红线地图），不明示。
+
+### 正文结构（观点/叙事文模板）
+```
+[共鸣钩 ≤ 30 字 — 说出受众心里那句话 / 一个反差场景]
+
+[场景或背景 1–2 句 — 把读者带入"我也是这样"]
+
+——
+
+[转折或冲突 — 你以为 X，结果 / 直到 Y]
+
+[真实细节 — 具体的人、事、数字、对话，越具体越戳]
+
+——
+
+[反认知 punchline — 这段是灵魂，给"哦原来如此"的认知]
+（观点文的转发 / 收藏全靠这一段能不能让人"想分享给某人"）
+
+[评论钩 — 具体可答的问题，最好是"邀请讲自己的故事"]
+[关注钩 — 给一个继续看下去的理由 / 系列感]
+```
+
+### 观点/叙事文 critical rules
+- **第一行就是观点或冲突**，不要铺垫（feed 只露第一行）
+- **写"我"的真实细节，不写道理**：道理谁都会讲，细节才有共鸣
+- **punchline 要"可被转发"**：读者会不会想 @ 给某个朋友？这是观点文能不能爆的唯一标准
+- **评论钩邀请故事**：`你有没有过类似的瞬间？` 比 `你怎么看？` 更能引出长评
+- **慎碰敏感叙事**：身份 / 移民 / 政治 / 婚恋 / 收入这类，先过「审核合规规则」的红线地图
+- emoji ≤ 5：观点文 emoji 越少越显真诚
+
+---
+
 ## Tag strategy
 
 发 8–15 个标签，按这四类分配：
@@ -177,9 +366,15 @@ Examples:
 
 ---
 
-## 避雷清单（必查，违反即限流）
+## 审核合规规则（违反即限流）
 
-发布前，**逐项扫描标题、正文、tag**：
+### 审核机制怎么运作（先理解再避雷）
+小红书审核是**静默的**：违规内容通常不报错、不提示，直接降权或 0 曝光。两个早期信号能判断有没有踩线：
+
+- **薯条（付费推广）被拒** → 提示"不符合薯条推广规范"，说明内容已命中敏感标签（薯条审核比自然流量更严）。这是最强的"内容违规"信号。
+- **发布后整天 0 曝光**（不是低，是 0）→ 基本是审核卡住或内容级静默限流，而不是"内容不够好"。
+
+发布前，**逐项扫描标题、正文、tag、封面大字**：
 
 ### 一票否决类（绝对化用语，2026 严打）
 最 / 第一 / 全网最低 / 完爆 / 碾压 / 必看 / 永远 / 唯一 / 顶级 / 神级 / 王炸
@@ -202,6 +397,27 @@ Examples:
 
 ### AI 生成内容
 任何 AI 生成内容必须在发布时勾选"AI 生成"标签，否则限流。
+
+### 赛道红线地图（身份 / 移民 / 海外，重点）
+海外生活 / 留学 / 职场赛道最容易踩的是**政治-移民擦边**。这类词机器会归到敏感标签，**不报违规直接 0 曝光**。
+
+强敏感（标题 / 正文 / tag 都别明示）：
+绿卡 / 移民 / 移民倾向 / 身份（指居留身份）/ 入籍 / 国籍 / 润 / 政治庇护 / 体制 / 国家认同 这类去留叙事
+
+能写 vs 不能写：
+| ❌ 容易限流的写法 | ✅ 安全的模糊改写 |
+|---|---|
+| 放下对绿卡的执念 | 放下了一个执念 / 不再追一个"标准答案" |
+| 留美14年 / 移民身份焦虑 | 在国外待了很多年 / 那种悬着的感觉 |
+| 该不该润 / 要不要移民 | 要不要留下来 / 去和留之间 |
+| tag 写 #绿卡 #移民 | tag 写 #海外生活 #心态 #30岁 等中性词 |
+
+模糊化原则：**把敏感名词换成"那张卡""一个东西""一个答案"等指代，真正的意思留给评论区和懂的人。** 标题靠"看完才懂"的钩子承载，绝不明示。
+
+> 案例（2026-06）：一条「留美14年后…放下对绿卡的执念」图文，整天 0 曝光 + 薯条判违规。情绪和文笔都没问题，纯粹是"绿卡 / 移民"选题踩线。重发把身份框架换成"心态 / 松弛感"即可。
+
+### 自查工具
+5118、灰豚、千瓜 都可以查违禁词。拿不准的选题先用模糊词发，别赌。
 
 ---
 
@@ -282,6 +498,13 @@ CES 公式里 评论×4 / 关注×8，所以每条笔记必须双钩齐发。
 - [ ] 视频总时长建议 1–2 分钟（小红书 vlog 甜区）
 - [ ] 中长视频（>5 分钟）默认横屏，享 90 天推荐期
 
+图文轮播（如适用）
+- [ ] 封面主标题 8–14 字，副标题 ≤16 字
+- [ ] 平台标题和封面标题不完全重复
+- [ ] 每页只讲 1 个点，图上字不超过两层
+- [ ] 倒数 1–2 页有可收藏信息（清单 / 路线 / 价格 / 对比）
+- [ ] 最后一页有具体评论问题 + 关注理由
+
 发布操作
 - [ ] 周二/三/日 19:00–21:00
 - [ ] 朋友前 30 分钟互动准备好
@@ -317,22 +540,94 @@ CES 公式里 评论×4 / 关注×8，所以每条笔记必须双钩齐发。
 - 避雷检查：[确认没有的敏感词]
 ```
 
+### When user wants photo-carousel copy
+
+```markdown
+# 小红书图文轮播文案
+
+## 轮播定位
+[受众 + 搜索关键词 + 这组图解决什么问题]
+
+## 平台标题（3 选 1）
+1. [标题方案 A，标注用的是哪个 Formula]
+2. [标题方案 B]
+3. [标题方案 C]
+
+## 封面文案
+主标题：[8–14 字]
+副标题：[≤16 字，可选]
+视觉备注：[建议选哪张图 / 大字放哪 / 是否需要贴纸或箭头]
+
+## 每页图上字
+P1 封面：[主标题] / [副标题]
+P2 [页标题]：[图上短文案]
+P3 [页标题]：[图上短文案]
+P4 [页标题]：[图上短文案]
+P5 [页标题]：[图上短文案]
+P6 收藏页：[清单/路线/价格/总结]
+P7 互动页：[具体问题 + 关注理由]
+
+## 正文（复制到正文框）
+[完整正文，不逐页复述，补充背景 + 洞察 + 评论钩 + 关注钩]
+
+## 标签（一次性粘贴）
+#标签1 #标签2 ... #标签N
+
+## 发布建议
+- 时间：[具体建议]
+- 互动问题：[最后一页和正文保持一致]
+- 避雷检查：[确认没有的敏感词]
+```
+
+### When user wants an opinion / narrative image-text note（观点/叙事文）
+
+```markdown
+# 小红书观点/叙事文文案
+
+## 选题定位
+[受众 + 这条想引发的共鸣 / 想说的那个观点 + 是否触及敏感选题（如触及，说明已做的模糊化处理）]
+
+## 标题（3 选 1）
+1. [标题方案 A，标注用的是哪个 Formula]
+2. [标题方案 B]
+3. [标题方案 C]
+
+## 封面建议
+[选哪张图 / 是否纯色大字 + 封面大字写什么（共鸣句或反差句）]
+
+## 正文（复制到正文框）
+[完整正文，按「观点/叙事文模板」写：共鸣钩 → 背景 → 转折 → 真实细节 → punchline → 评论钩 + 关注钩]
+
+## 标签（一次性粘贴）
+#标签1 #标签2 ... #标签N
+
+## 发布建议
+- 时间：[具体建议]
+- 互动问题：[邀请讲自己故事的具体问题]
+- 避雷检查：[确认没踩敏感词 + 红线地图，列出做了哪些模糊化替换]
+```
+
 ### When user wants full production (raw footage → publishable bundle)
 
 Produce, in this exact order:
 
-1. **Plan summary** (3–5 bullets: vlog theme, narrative arc, target duration, cover concept)
-2. **Confirm with user** before any rendering
-3. **Delegate to `video-use`** → outputs `final.mp4` + `subtitles.srt`
-4. **Delegate to `hyperframes`** → outputs `cover.png` (3:4 or 1:1)
-5. **Generate `post.md`** using the copy-only template above
-6. **Final bundle** placed alongside the source footage:
+1. **Compact asset index** (not a full edit): source files, durations, 1-line visual descriptions, likely best use, and 2-3 possible directions.
+2. **Plan summary** (3–5 bullets): selected direction, narrative arc, target duration, must-keep/must-cut moments, cover/BGM concept.
+3. **Confirm with user** before any rendering. Ask the user to lock the voiceover/script and hard constraints.
+4. **Delegate to `video-use`** → produce one preview + `subtitles.srt` backup. Avoid reading full generated artifacts unless needed for a specific fix.
+5. **Iterate in batches** → user gives 3-5 concrete changes; target 2-3 preview rounds total.
+6. **Generate cover candidates + `post.md`** after the cut is approved. Use the copy-only template above for title/body/tags.
+7. **Final bundle** placed in `published/<note>/`, with intermediate work in `scratch/<note>/`:
    ```
-   <working_folder>/
-   ├── final.mp4        ← subtitles burned in
-   ├── cover.png        ← 3:4 with title overlay
+   published/<note>/
+   ├── final.mp4        ← upload-ready: subtitles burned in, BGM mixed when appropriate
+   ├── final_no_bgm.mp4 ← backup when practical
+   ├── cover.png        ← 3:4 or 1:1 cover
    ├── post.md          ← title + body + tags + 发布建议
    └── subtitles.srt    ← backup, in case user wants to edit in 剪映
+
+   scratch/<note>/
+   └── ...              ← transcripts, previews, segment renders, frames, drafts
    ```
 
 The user uploads `final.mp4` + `cover.png` to Xiaohongshu and pastes `post.md` into the caption fields.
@@ -357,7 +652,40 @@ The user uploads `final.mp4` + `cover.png` to Xiaohongshu and pastes `post.md` i
 3. **某条曾经爆款，现在掉量？**
    - 检查最近是否发了违规内容触发账号扣分
    - 检查是否频繁删除/编辑历史笔记
-4. **检查工具**：5118、灰豚、千瓜 都可以查违禁词
+4. **这条薯条推广被拒（"不符合薯条推广规范"）？**
+   - 实锤内容级敏感：薯条审核比自然流量严，被拒 = 已命中敏感标签
+   - 配合"整天 0 曝光"基本确诊内容违规 → 别改这条（救不回还扣权重），按红线地图去敏感化**重发**
+5. **检查工具**：5118、灰豚、千瓜 都可以查违禁词
+
+---
+
+## Best practices（产出前必读，正向清单）
+
+把"会被推荐 + 吸引人 + 不违规"压缩成正向动作。下面是该做的；不该做的见 Anti-patterns。
+
+**选题**
+- 选有搜索量 + 受众清晰的角度；敏感选题先过红线地图再写
+- 一条只讲一个点，别贪多
+
+**标题 + 封面**
+- 关键词放前 1/3；用一个 Title Formula，别即兴
+- 第一行 / 封面大字承担点击，制造反差或共鸣
+- ≤20 字，0–2 emoji，无绝对化用语、无敏感词
+
+**正文**
+- 第一句就是钩子（≤30 字）；多断行
+- 给画面 / 经历之外的增量信息；至少 1 个反认知 punchline
+- 双钩齐发：具体可答的评论钩（4×）+ 给理由的关注钩（8×）
+
+**合规**
+- 发布前逐项扫避雷清单 + 红线地图
+- AI 生成内容勾选"AI 生成"标签；不放联系方式
+
+**运营**
+- 周二 / 三 / 日 19–21 点发
+- 前 30 分钟让朋友留长评 + 关注，别只点赞
+- 别频繁删改、别同内容重发、养号期别发主推内容
+- 垂直深耕：同账号持续发同赛道，标签越纯起量越快
 
 ---
 
@@ -384,6 +712,8 @@ The user uploads `final.mp4` + `cover.png` to Xiaohongshu and pastes `post.md` i
 | 3 小时晋级池 完播率 | ≥ 40% |
 | 标题字数 | ≤ 20 字 |
 | 第一句字数 | ≤ 30 字 |
+| 轮播封面主标题 | 8–14 字 |
+| 轮播每页正文 | ≤ 28 字/块 |
 | 前 100 字关键词重复 | 2–3 次 |
 | 正文 emoji 总数 | ≤ 8 |
 | 标签数量 | 8–15 |
