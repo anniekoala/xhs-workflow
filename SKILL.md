@@ -1,11 +1,125 @@
 ---
-name: xiaohongshu-content
-description: Produce Xiaohongshu (小红书 / RED / Little Red Book) posts that align with the 2026 algorithm (CES scoring, 搜推互通 search-recommend coupling, 流量平权 traffic equality). Apply when generating Xiaohongshu titles, captions, body copy, tags, carousel copy, cover text, or post copy; when adapting vlog, photo sets, or video content into Xiaohongshu format; or whenever the user mentions 小红书, RED, 笔记, 文案, 图文轮播, 爆款, or asks for help with Xiaohongshu publishing. Covers three production tracks — video notes, information image-text carousels (图文轮播), and opinion/emotional/narrative image-text notes (观点/叙事型图文). Includes a content-recommendation rulebook (what gets pushed vs suppressed, what is engaging), an audit-compliance ruleset with a niche red-line map for identity/immigration topics and a 薯条/0-exposure limit-detection guide, platform-tuned title formulas, body templates, tag strategy, sensitive-keyword avoidance list, engagement hooks for the 2026 CES formula, a best-practices checklist, a pre-publish checklist, 限流 diagnostics, and a production pipeline that delegates video editing to the video-use skill and motion graphics / cover design to the hyperframes ecosystem (animejs, gsap, lottie, waapi, three, tailwind).
+name: xhs-workflow
+description: Personal Xiaohongshu (小红书 / RED / Little Red Book) workflow skill for consistent content production across agents and computers. Use whenever the user asks for Xiaohongshu strategy, raw-video-to-post work, idea development, draft editing, photo/screenshot carousel planning, titles, cover text, captions, scripts, tags, first comments, publishing bundles, or post diagnostics. First route the request by input type, then follow the matching workflow. Mandatory gates: final copy must pass the bundled humanizer-xhs workflow, and final visual deliverables must pass the visual quality workflow. Preserves the existing XHS strategy rules for platform-tuned titles, body templates, tags, sensitive wording, pre-publish checks, diagnostics, and staged video production.
 ---
 
-# Xiaohongshu Content Skill
+# XHS Workflow Skill
 
-This skill produces Xiaohongshu (小红书) post copy that survives 2026 platform rules and aligns with current viral patterns. Apply it whenever the user asks for Xiaohongshu titles, captions, body, tags, carousel page text, cover text, or vlog write-ups. **If unsure, apply this skill** — generic copywriting fails Xiaohongshu's 2026 distribution rules in specific, predictable ways.
+This is the project-level source of truth for producing Xiaohongshu content in Annie's `xhs` workspace.
+
+It owns the workflow, copy strategy, publishing checks, and delegation map. It does not need to force every step through a separate skill. Instead, it uses two mandatory quality gates:
+
+1. **Copy gate**: every final title, cover text, caption, script, first comment, carousel text, and post copy must pass `dependencies/humanizer-xhs/SKILL.md`.
+2. **Visual gate**: every final cover, carousel image, title card, subtitle style, or video visual package must pass `rules/visual-rules.md`.
+
+The existing XHS strategy rules below are retained as the platform/copy rulebook. Use them after routing the user's input.
+
+---
+
+## Intake router
+
+Before doing any work, classify what the user already has. Do not force every request through ideation.
+
+| Input type | Route |
+|---|---|
+| Raw video or rough edit | Raw Video Workflow |
+| A loose idea / topic / feeling | Idea Workflow |
+| Draft copy | Draft Editing Workflow |
+| Photos / screenshots | Photo & Screenshot Workflow |
+| Published post data | Diagnostics / Review Workflow |
+| Nothing concrete yet | From-Scratch Planning Workflow |
+
+If the input is ambiguous, ask one concise question to identify the route.
+
+### Raw Video Workflow
+
+If the user provides or references raw video, do not start with title or caption. The video itself comes first.
+
+1. Understand the footage: what happens, usable moments, emotional tone, weak moments.
+2. Extract the strongest theme.
+3. Choose the presentation format: lifestyle vlog, tutorial, review, recommendation, story, contrast, opinion, or behind-the-scenes.
+4. Give editing recommendations: opening 0-3 seconds, keep/cut moments, subtitle beats, pauses, zooms, arrows, B-roll gaps, voiceover needs, target length, BGM mood.
+5. Wait for or confirm the edited direction.
+6. Generate title candidates based on the confirmed cut.
+7. Generate cover text.
+8. Create or design the cover image.
+9. Write the post caption.
+10. Generate hashtags, first comment, and interaction prompt.
+11. Run the copy gate, visual gate, and pre-publish checklist.
+
+### Idea Workflow
+
+When the user only has an idea, the goal is to turn it into a presentable content angle before drafting.
+
+1. Identify the target reader and pain point.
+2. Judge whether the idea is worth a post.
+3. Choose the content type: tutorial, list, mistake/avoidance, comparison, experience, review, narrative, or opinion.
+4. Define the core claim or emotional point.
+5. Decide whether it should be video, photo carousel, or text-led note.
+6. Produce an outline and a shot/photo/material list.
+7. Then continue into title, cover, copy, tags, and checks.
+
+### Draft Editing Workflow
+
+When the user provides draft copy, preserve their intent and improve it.
+
+1. Check whether the theme is clear.
+2. Fix structure and paragraph order.
+3. Strengthen the opening and rhythm.
+4. Make the voice more natural and less generic.
+5. Add title, cover text, tags, first comment, and interaction prompt if needed.
+6. Run the copy gate before delivery.
+
+### Photo & Screenshot Workflow
+
+When the user provides photos or screenshots, build the carousel around the images instead of inventing unrelated copy.
+
+1. Identify what each image can communicate.
+2. Sort or group images by story/value.
+3. Design the carousel page structure.
+4. Write cover text and per-page copy.
+5. Write the body caption, tags, first comment, and interaction prompt.
+6. Run the copy gate, visual gate, and pre-publish checklist.
+
+### Diagnostics / Review Workflow
+
+When the user provides published post data, diagnose before rewriting.
+
+1. Identify the likely bottleneck: topic, title, cover, opening, completion, save value, comments, compliance, or account consistency.
+2. Separate evidence from guesses.
+3. Suggest the smallest useful changes for the next post.
+4. If editing an existing draft, run the relevant route above.
+
+### From-Scratch Planning Workflow
+
+Only use this when the user has no existing idea, media, draft, or data.
+
+1. Clarify content pillar and target reader.
+2. Generate a compact set of post ideas.
+3. Pick the best angle.
+4. Continue through the Idea Workflow.
+
+---
+
+## Mandatory copy gate
+
+Before delivering final Xiaohongshu copy, read and apply:
+
+`dependencies/humanizer-xhs/SKILL.md`
+
+This applies to platform titles, cover text, captions, body copy, video scripts, voiceover, carousel page text, first comments, and interaction prompts.
+
+If the current agent supports skills, it may install or activate a humanizer skill. If not, it must read the bundled `dependencies/humanizer-xhs/SKILL.md` and apply the rules manually. Do not skip this gate because a specific external skill is unavailable.
+
+---
+
+## Mandatory visual gate
+
+Before delivering final visual assets, read and apply:
+
+`rules/visual-rules.md`
+
+Use `rules/visual-skills.md` to decide which visual skills or tools are available and appropriate. The visual tool may render assets, but this workflow remains the source of truth for title, cover text, post copy, and publishing checks.
 
 ---
 
@@ -64,6 +178,47 @@ Token discipline for video projects:
 3. **Bundle output** → place rendered images + `post.md` in `published/<note>/`; keep design drafts and generated intermediates in `scratch/<note>/`; do not let the visual tool invent separate title/body copy
 
 If the user only asks for copy (text only), skip visual production and produce the relevant output template alone.
+
+---
+
+## Sandbox 环境下的生产 workaround（sandbox-adapted）
+
+在受限沙盒里跑视频生产时，默认流程会被三类限制卡住：**网络白名单、无 GPU、系统工具精简**。按下面的回退方案处理。核心原则：**所有依赖装进工作区内的 venv**（沙盒通常只允许写工作区），跑通后留在 `scratch/<note>/` 里可复用，不必每次重踩。
+
+### 限制 → 解法
+
+1. **网络只有白名单** → 云端转写 / 模型下载常被拦（403 / ProxyError）。
+   - 不要依赖云端 ASR（如 ElevenLabs Scribe）。改用**本地、离线、已缓存模型**。
+
+2. **没有 GPU** → `mlx-whisper` 等 Metal/CUDA 方案会崩（如 `NSRangeException`，拿不到 GPU 设备）。
+   - 转写改用 **`faster-whisper`（CPU / CTranslate2）**，离线加载本地缓存模型。慢一点但稳定、不挑环境。
+
+3. **系统 ffmpeg 精简** → Homebrew 等构建常缺 `libass`（烧字幕的 `subtitles` 滤镜）和 `zscale`（HDR 色彩转换），且全局 `pip install` 受限。
+   - `pip install imageio-ffmpeg`（装进 venv），它**自带一个完整静态编译的 ffmpeg 二进制**，含 `libass`/`subtitles`/`zscale`/`tonemap`。
+   - 之后所有渲染命令**用该二进制的绝对路径**，不要用系统 `ffmpeg`：
+     `<venv>/lib/pythonX.Y/site-packages/imageio_ffmpeg/binaries/ffmpeg-<platform>-vN.N`
+   - 上手前先验证：`<ffmpeg> -hide_banner -filters | grep -E "subtitles|zscale"`，两个都在才用。
+
+### 关键能力解锁
+
+- **烧字幕**：有 libass 后直接用 `subtitles=master_zh.ass`（原生、快）。
+  - 应急回退（确实没有 libass 时）：用 Pillow 把每句字幕渲染成透明 PNG 再 `overlay` 叠回。能出片，但几十层叠加非常慢，只在拿不到完整 ffmpeg 时用。
+- **iPhone HDR 校色**：iPhone 素材常是 HLG HDR（`arib-std-b67` / `bt2020`）。不转换的话在 SDR 屏上会过饱和（用户会形容成"滤镜感"）。在抽帧/切片阶段用 zscale+tonemap 转成 Rec.709 SDR：
+  ```
+  zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p
+  ```
+
+### 建立可复用环境（一次）
+```bash
+python3 -m venv scratch/<note>/wenv
+scratch/<note>/wenv/bin/pip install faster-whisper imageio-ffmpeg
+```
+转写脚本与产物（如 `fw_run.py`、`*_transcript.json`）留在 `scratch/<note>/`，下个视频直接复用。
+
+### 何时跳过这套
+不在沙盒、系统 ffmpeg 已含 `libass`+`zscale`、且有可用 GPU/网络时，按主流程走即可，无需 venv 回退。这一节只在受限环境触发时启用。
+
+---
 
 ## Core 2026 platform model (3 facts agent must know)
 

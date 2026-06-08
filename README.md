@@ -1,6 +1,19 @@
-# xiaohongshu-content
+# xhs-workflow
 
-A [Cursor Agent Skill](https://cursor.com/docs/agent/skills) for producing 小红书 (Xiaohongshu / RED / Little Red Book) post copy that aligns with the **2026 platform algorithm** — CES scoring, search-recommendation coupling, traffic equality for sub-1K-follower accounts.
+A personal Xiaohongshu (小红书 / RED / Little Red Book) workflow skill for producing consistent content across computers, agents, and models.
+
+It preserves the old `xiaohongshu-content` strategy rules, but upgrades the skill into a full workflow router:
+
+- raw video → edit direction → title/cover/caption
+- loose idea → content angle → outline/material list
+- draft copy → structure and voice edit
+- photos/screenshots → carousel structure and page copy
+- published data → diagnostics and next-post fixes
+
+It also adds two mandatory gates:
+
+- **Copy gate**: final copy must pass `dependencies/humanizer-xhs/SKILL.md`
+- **Visual gate**: final visual assets must pass `rules/visual-rules.md`
 
 When this skill is installed, Cursor will automatically apply it whenever you ask for:
 - Xiaohongshu titles, captions, body copy, or tags
@@ -12,7 +25,11 @@ When this skill is installed, Cursor will automatically apply it whenever you as
 
 ## What's inside
 
-A single `SKILL.md` that encodes:
+The workflow includes:
+
+- **Intake router** for raw video, ideas, drafts, photos/screenshots, diagnostics, and from-scratch planning
+- **Bundled humanizer-xhs dependency** for reducing AI flavor, public-account tone, and generic marketing copy
+- **Visual quality rules** and an extensible visual skill registry
 
 - **2026 CES formula** (点赞×1 + 收藏×1 + 评论×4 + 转发×4 + 关注×8) and its tactical implications
 - **Tiered cold-start gates** (1h CTR, 3h 完播率, 3–9d long tail, 10d+ search)
@@ -25,6 +42,7 @@ A single `SKILL.md` that encodes:
 - **Engagement hook templates** optimized for the 4× / 8× CES weights
 - **Best-practices checklist** (positive do's across 选题 / 标题 / 正文 / 合规 / 运营)
 - **Token-aware video workflow**: compact asset index → lock brief → one preview → batched feedback → publish bundle, so video projects do not waste context on repeated full EDL/SRT/log reads
+- **Sandbox workaround**: how to run the video pipeline in a restricted sandbox (network allowlist, no GPU, minimal system ffmpeg) — in-workspace venv, CPU `faster-whisper` fallback, and the `imageio-ffmpeg` bundled full ffmpeg for libass subtitle burn-in + zscale HDR→SDR color
 - **Pre-publish checklist**
 - **Output format** that produces directly-copy-pasteable content
 - **Diagnostic decision tree** for 限流 / shadow-banned accounts
@@ -36,13 +54,13 @@ A single `SKILL.md` that encodes:
 ```bash
 # Clone or download this folder, then:
 mkdir -p ~/.cursor/skills
-ln -s "$(pwd)/xiaohongshu-content" ~/.cursor/skills/xiaohongshu-content
+ln -s "$(pwd)/xhs-workflow" ~/.cursor/skills/xhs-workflow
 ```
 
 Or just copy:
 
 ```bash
-cp -r xiaohongshu-content ~/.cursor/skills/
+cp -r xhs-workflow ~/.cursor/skills/
 ```
 
 ### As a project skill
@@ -51,7 +69,7 @@ Drop this folder into `.cursor/skills/` inside any project:
 
 ```bash
 mkdir -p .cursor/skills
-cp -r xiaohongshu-content .cursor/skills/
+cp -r xhs-workflow .cursor/skills/
 ```
 
 ## Verifying it loaded
