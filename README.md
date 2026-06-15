@@ -1,21 +1,63 @@
 # xhs-workflow
 
-A personal Xiaohongshu (小红书 / RED / Little Red Book) workflow skill for producing consistent content across computers, agents, and models.
+**English** · [中文](https://github.com/anniekoala/xhs-workflow/blob/main/README.zh.md)
 
-It preserves the old `xiaohongshu-content` strategy rules, but upgrades the skill into a full workflow router:
+A personal Xiaohongshu (小红书 / RED / Little Red Book) content workflow — an Agent Skill that routes raw video, ideas, drafts, or photos into ready-to-publish titles, covers, captions, tags, and outlines, with built-in copy & visual quality gates.
 
-- raw video → edit direction → title/cover/caption
-- loose idea → content angle → outline/material list
+It upgrades a flat "copywriting prompt" into a full workflow router:
+
+- raw video → edit direction → title / cover / caption
+- loose idea → content angle → outline / material list
 - draft copy → structure and voice edit
-- photos/screenshots → carousel structure and page copy
+- photos / screenshots → carousel structure and page copy
 - published data → diagnostics and next-post fixes
 
-It also adds two mandatory gates:
+## Agent structure
 
-- **Copy gate**: final copy must pass `dependencies/humanizer-xhs/SKILL.md`
-- **Visual gate**: final visual assets must pass `rules/visual-rules.md`
+This skill is a **Director + specialist sub-agents** setup. The **Director** is the brain (`SKILL.md`). It never cuts video or renders pixels itself — it routes the request, owns all strategy and copy, and **delegates** production to specialist sub-agents, gating their output through two mandatory quality checks.
 
-When this skill is installed, Cursor will automatically apply it whenever you ask for:
+```
+              ┌──────────────────────────────────────────────┐
+              │  DIRECTOR — xhs-workflow / SKILL.md           │
+              │  intake routing · strategy · titles/body/tags │
+              │  compliance red-lines · templates · diagnostics│
+              └───────────────────┬──────────────────────────┘
+                                  │  delegates
+                                  │  (after dependency preflight)
+        ┌───────────────┬─────────┴────────┬──────────────────┐
+        ▼               ▼                  ▼                  ▼
+  ✍️ humanizer-xhs  🖼️ xiaohongshu-    🎬 video-use      🎞️ hyperframes
+   copy de-AI        photo-cover        raw footage →     HTML video /
+   (bundled)         real-photo cover   cut + burn-in     cover frame /
+                     (bundled)          subtitles (ext)   motion (ext)
+        │               │                  │                  │
+        └─── copy gate ─┘                  └── visual gate ────┘
+        (humanizer-xhs)            (rules/visual-rules.md)
+
+  + bring-your-own image model (imagegen-class) to actually render covers
+```
+
+| Role | Agent | Ships | Best model | Job |
+|---|---|---|---|---|
+| **Director** | `xhs-workflow` (`SKILL.md`) | bundled | any | Routing, strategy, copy, compliance, templates |
+| Copy sub-agent | `humanizer-xhs` | bundled | any | Strip AI / public-account / marketing tone — the mandatory **copy gate** |
+| Cover sub-agent | `xiaohongshu-photo-cover` | bundled | **Codex + GPT-5.5** | Turn a **real photo** into a 小红书 cover (retouch + torn-paper outline + sticker title) |
+| Video sub-agent | `video-use` | external (`./install.sh`) | any + FFmpeg | Cut footage, transcribe, burn-in subtitles |
+| Motion / visual sub-agent | `hyperframes` (+ adapters) | external (`./install.sh`) | any + Node ≥ 22 | HTML video, cover frame, motion, transitions |
+
+**Two mandatory gates**
+
+- **Copy gate** — every final title / body / tag / caption / first comment passes `dependencies/humanizer-xhs/SKILL.md`.
+- **Visual gate** — every final cover / carousel / video visual passes `rules/visual-rules.md`.
+
+**Dependency preflight** — before delegating to any sub-agent, the Director checks whether it is installed. If it is missing, the Director tells you what's blocked and guides you through installing or substituting it — it never fails silently or fakes the output. Protocol and registry: `rules/dependencies.md`.
+
+> The text layer (titles, body, tags, carousel/opinion copy, diagnostics) runs **standalone** — clone the repo and it works with no external install. Only the video/visual production sub-agents need the extra skills above.
+
+## When it applies
+
+When this skill is installed, your agent applies it automatically whenever you ask for:
+
 - Xiaohongshu titles, captions, body copy, or tags
 - Adapting a vlog / photo set / article into 小红书 format
 - An 观点 / 情绪 / 经历类图文 (opinion or narrative note)
@@ -25,56 +67,46 @@ When this skill is installed, Cursor will automatically apply it whenever you as
 
 ## What's inside
 
-The workflow includes:
-
 - **Intake router** for raw video, ideas, drafts, photos/screenshots, diagnostics, and from-scratch planning
 - **Bundled humanizer-xhs dependency** for reducing AI flavor, public-account tone, and generic marketing copy
 - **Visual quality rules** and an extensible visual skill registry
-
 - **2026 CES formula** (点赞×1 + 收藏×1 + 评论×4 + 转发×4 + 关注×8) and its tactical implications
 - **Tiered cold-start gates** (1h CTR, 3h 完播率, 3–9d long tail, 10d+ search)
-- **Content-recommendation rulebook**: what gets pushed vs suppressed, and what makes content engaging (click / dwell / interaction)
+- **Content-recommendation rulebook**: what gets pushed vs suppressed, and what makes content engaging
 - **5 title formulas** with example slots
 - **Body template** for the "hook → 增量信息 → punchline → CTA" structure
 - **Three production tracks**: video notes, information carousels (图文轮播), and opinion/narrative image-text notes (观点/叙事型图文), each with its own template
 - **Tag strategy** split across search / scene / category / long-tail
-- **Audit-compliance ruleset**: how silent 限流 works, the sensitive keyword avoidance list (绝对化用语, 加密货币, 金融/医疗/政治, 引战词, AI 生成内容标记), a niche red-line map for identity/immigration topics with safe-rewrite table, and a 薯条 / 0-exposure limit-detection guide
+- **Audit-compliance ruleset**: how silent 限流 works, the sensitive keyword avoidance list, a niche red-line map for identity/immigration topics with a safe-rewrite table, and a 薯条 / 0-exposure limit-detection guide
 - **Engagement hook templates** optimized for the 4× / 8× CES weights
-- **Best-practices checklist** (positive do's across 选题 / 标题 / 正文 / 合规 / 运营)
-- **Token-aware video workflow**: compact asset index → lock brief → one preview → batched feedback → publish bundle, so video projects do not waste context on repeated full EDL/SRT/log reads
-- **Sandbox workaround**: how to run the video pipeline in a restricted sandbox (network allowlist, no GPU, minimal system ffmpeg) — in-workspace venv, CPU `faster-whisper` fallback, and the `imageio-ffmpeg` bundled full ffmpeg for libass subtitle burn-in + zscale HDR→SDR color
-- **Pre-publish checklist**
-- **Output format** that produces directly-copy-pasteable content
-- **Diagnostic decision tree** for 限流 / shadow-banned accounts
-- **Dependency preflight**: a self-check + guided-install protocol (`rules/dependencies.md`) so the agent detects missing production skills (video/visual) and walks the user through installing them instead of failing silently
+- **Token-aware video workflow**: compact asset index → lock brief → one preview → batched feedback → publish bundle
+- **Sandbox workaround**: running the video pipeline in a restricted sandbox (no GPU, minimal ffmpeg) via in-workspace venv, CPU `faster-whisper`, and `imageio-ffmpeg` for libass subtitle burn-in + HDR→SDR color
+- **Pre-publish checklist**, **output templates**, and a **diagnostic decision tree** for 限流 / shadow-banned accounts
+- **Dependency preflight** (`rules/dependencies.md`): self-check + guided install for the production sub-agents
 
 ## Skills in this workflow
-
-This skill is the **strategy + copy brain**. It runs **standalone** for everything text-based: titles, body, tags, carousel/opinion copy, cover text, diagnostics. The skills that are tightly coupled to this workflow ship **bundled inside this repo** (no install). Heavy third-party production skills are **referenced** and installed from their own upstreams with one script (`./install.sh`) — re-hosting them here would only go stale.
 
 ### ✅ Bundled (ship in this repo, clone = ready)
 
 | Skill | What it does |
 |---|---|
-| `xhs-workflow` (this repo) | Strategy + copy + routing brain |
+| `xhs-workflow` (this repo) | Director: strategy + copy + routing brain |
 | `dependencies/humanizer-xhs/` | Copy de-AI gate (mandatory copy check) |
-| `dependencies/xiaohongshu-photo-cover/` | Turn a **real photo** into a 小红书 cover (smart retouch + torn-paper outline + doodle + sticker title). Best run in **Codex + GPT-5.5** — see its `README.md` |
+| `dependencies/xiaohongshu-photo-cover/` | Real photo → 小红书 cover. Best run in **Codex + GPT-5.5** — see its `README.md` |
 
 ### 🔵 External — install with `./install.sh` (or by hand)
 
 | Capability | Skill | Install |
 |---|---|---|
 | Video edit / transcribe / burn-in subtitles | `video-use` | `git clone https://github.com/browser-use/video-use`, then run its `install.md` |
-| HTML video / cover / motion / transitions | `hyperframes` (+ adapters: `gsap`, `animejs`, `three`, `typegpu`, …) | `npx skills add heygen-com/hyperframes` (needs Node ≥ 22 + FFmpeg) |
+| HTML video / cover / motion / transitions | `hyperframes` (+ adapters: `gsap`, `animejs`, `three`, …) | `npx skills add heygen-com/hyperframes` (needs Node ≥ 22 + FFmpeg) |
 
 ### 🟡 Bring-your-own (no fixed public source)
 
 | Capability | Skill | Note |
 |---|---|---|
-| Image generation / reference-image edit | `imagegen` | Use whatever image model/MCP you have (nano-banana / Gemini image edit / Codex). `xiaohongshu-photo-cover` needs one of these to actually render |
+| Image generation / reference-image edit | `imagegen` | Use whatever image model/MCP you have. `xiaohongshu-photo-cover` needs one of these to actually render |
 | Multi-page card layout | `presentations` | Or fall back to `hyperframes`, or deliver per-slide copy + layout note |
-
-When a step needs one of these, the agent runs the preflight in `rules/dependencies.md`: it checks whether the skill is installed, and if missing, tells you what's blocked and how to install/substitute — it won't fake the output. If you only want copy + strategy, you can ignore the external/bring-your-own tables entirely.
 
 ### One-command install of external skills
 
@@ -100,8 +132,6 @@ cp -r xhs-workflow ~/.cursor/skills/
 
 ### As a project skill
 
-Drop this folder into `.cursor/skills/` inside any project:
-
 ```bash
 mkdir -p .cursor/skills
 cp -r xhs-workflow .cursor/skills/
@@ -118,8 +148,6 @@ The 小红书 algorithm changes frequently. When platform rules update:
 1. Re-run the agent with a prompt like "search for latest Xiaohongshu algorithm updates, update SKILL.md if rules changed"
 2. Compare to the documented CES formula, cold-start gates, and sensitive keyword list
 3. Edit `SKILL.md` directly
-
-The skill is intentionally a single file so it's easy to keep current.
 
 ## License
 
