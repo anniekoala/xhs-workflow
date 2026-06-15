@@ -138,9 +138,24 @@ Do **not** apply for: other platforms (Douyin, Instagram, TikTok, Twitter/X). Th
 
 ---
 
+## Dependency preflight（依赖自检与引导安装）
+
+This skill is the **strategy + copy brain**. Production execution (video editing, cover/carousel rendering, image generation) is delegated to **companion skills that do not ship in this repo** — only `dependencies/humanizer-xhs/` is bundled. So before delegating to any companion skill below, run the preflight protocol:
+
+1. **Check if the needed companion skill is installed** — look for a `<skill>/SKILL.md` under `~/.cursor/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.agents/skills/`, or project-local `./.cursor/skills/`.
+2. **If installed** → delegate normally.
+3. **If missing** → do **not** fail silently or fake the production output. Tell the user which capability is blocked, look it up in `rules/dependencies.md`, and:
+   - 🔵 Public dep → show the exact install command, ask permission, run it, re-check, then continue.
+   - 🟡 Optional/substitutable dep → explain there is no fixed public install; ask the user to supply their own equivalent tool or approve advice-only output for that step.
+4. **Never block the copy/strategy deliverable** because a production dependency is missing — always still deliver titles / body / tags / cover text; only the execution step degrades.
+
+Full registry, install commands, and sources: **`rules/dependencies.md`**.
+
+---
+
 ## Companion skills (delegation map)
 
-This skill owns **strategy** (what to write, why, how to dodge limits). It does **not** own production execution. When the user supplies raw materials, delegate to the right companion skill:
+This skill owns **strategy** (what to write, why, how to dodge limits). It does **not** own production execution. When the user supplies raw materials, delegate to the right companion skill (after running the dependency preflight above):
 
 | User intent | Skill to invoke | Why |
 |---|---|---|

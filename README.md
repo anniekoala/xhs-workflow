@@ -46,6 +46,41 @@ The workflow includes:
 - **Pre-publish checklist**
 - **Output format** that produces directly-copy-pasteable content
 - **Diagnostic decision tree** for 限流 / shadow-banned accounts
+- **Dependency preflight**: a self-check + guided-install protocol (`rules/dependencies.md`) so the agent detects missing production skills (video/visual) and walks the user through installing them instead of failing silently
+
+## Skills in this workflow
+
+This skill is the **strategy + copy brain**. It runs **standalone** for everything text-based: titles, body, tags, carousel/opinion copy, cover text, diagnostics. The skills that are tightly coupled to this workflow ship **bundled inside this repo** (no install). Heavy third-party production skills are **referenced** and installed from their own upstreams with one script (`./install.sh`) — re-hosting them here would only go stale.
+
+### ✅ Bundled (ship in this repo, clone = ready)
+
+| Skill | What it does |
+|---|---|
+| `xhs-workflow` (this repo) | Strategy + copy + routing brain |
+| `dependencies/humanizer-xhs/` | Copy de-AI gate (mandatory copy check) |
+| `dependencies/xiaohongshu-photo-cover/` | Turn a **real photo** into a 小红书 cover (smart retouch + torn-paper outline + doodle + sticker title). Best run in **Codex + GPT-5.5** — see its `README.md` |
+
+### 🔵 External — install with `./install.sh` (or by hand)
+
+| Capability | Skill | Install |
+|---|---|---|
+| Video edit / transcribe / burn-in subtitles | `video-use` | `git clone https://github.com/browser-use/video-use`, then run its `install.md` |
+| HTML video / cover / motion / transitions | `hyperframes` (+ adapters: `gsap`, `animejs`, `three`, `typegpu`, …) | `npx skills add heygen-com/hyperframes` (needs Node ≥ 22 + FFmpeg) |
+
+### 🟡 Bring-your-own (no fixed public source)
+
+| Capability | Skill | Note |
+|---|---|---|
+| Image generation / reference-image edit | `imagegen` | Use whatever image model/MCP you have (nano-banana / Gemini image edit / Codex). `xiaohongshu-photo-cover` needs one of these to actually render |
+| Multi-page card layout | `presentations` | Or fall back to `hyperframes`, or deliver per-slide copy + layout note |
+
+When a step needs one of these, the agent runs the preflight in `rules/dependencies.md`: it checks whether the skill is installed, and if missing, tells you what's blocked and how to install/substitute — it won't fake the output. If you only want copy + strategy, you can ignore the external/bring-your-own tables entirely.
+
+### One-command install of external skills
+
+```bash
+./install.sh   # clones video-use + installs the hyperframes ecosystem
+```
 
 ## Installation
 
