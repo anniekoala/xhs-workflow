@@ -8,7 +8,7 @@ Run this before delivering a final publishing bundle.
 - Cover text is shorter than the platform title when possible.
 - First line enters the topic quickly.
 - Caption adds context not already obvious from the media.
-- Copy passed `dependencies/humanizer-xhs/SKILL.md`.
+- Copy passed `dependencies/xhs-copy/humanizer/SKILL.md`.
 
 ## Visual
 

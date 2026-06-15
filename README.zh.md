@@ -14,40 +14,41 @@
 
 ## Agent 结构
 
-这套是 **1 个 Director + 多个专职子 Agent** 的结构。**Director（总指挥）就是大脑**（`SKILL.md`）。它自己不剪视频、不画图，只负责：路由请求、掌管全部策略与文案，然后把生产环节**派发**给专职子 Agent，并用两道强制质量闸门把关它们的产出。
+这套是 **1 个 Director + 多个专职子 Agent** 的结构。**Director（总指挥）就是大脑**（`SKILL.md`）。它自己不写文案、不画图，只负责：路由请求、掌管平台策略 + 合规 + 发布，然后把文案**派发**给 `xhs-copy`、把视觉 / 视频派发给生产子 Agent，并用两道强制质量闸门把关它们的产出。
 
 ```
               ┌──────────────────────────────────────────────┐
               │  DIRECTOR — xhs-workflow / SKILL.md           │
-              │  入口路由 · 策略 · 标题/正文/标签              │
-              │  合规红线 · 模板 · 限流诊断                    │
+              │  入口路由 · 平台策略                           │
+              │  合规红线 · 发布检查 · 两道闸门                │
               └───────────────────┬──────────────────────────┘
                                   │  派发
                                   │  （先跑依赖自检）
         ┌───────────────┬─────────┴────────┬──────────────────┐
         ▼               ▼                  ▼                  ▼
-  ✍️ humanizer-xhs  🖼️ xiaohongshu-    🎬 video-use      🎞️ hyperframes
-   文案去 AI 味      photo-cover        原始素材 →        HTML 视频 /
-   （内置）          真实照片封面       剪辑 + 烧字幕      封面单帧 /
-                     （内置）           （外部）          动效（外部）
-        │               │                  │                  │
-        └─── 文案闸门 ──┘                  └──── 视觉闸门 ─────┘
-        (humanizer-xhs)            (rules/visual-rules.md)
+  ✍️ xhs-copy      🖼️ xhs-image       🎬 video-use      🎞️ hyperframes
+   标题/正文/       封面：编辑真实      原始素材 →        HTML 视频 /
+   标签/钩子        照片 或 从零生成     剪辑 + 烧字幕      封面单帧 /
+   + humanizer      （内置）            （外部）          动效（外部）
+   （内置）
+        │               └──────────────────┴──────────────────┘
+     文案闸门                        视觉闸门
+ (xhs-copy/humanizer)            (rules/visual-rules.md)
 
   + 自备图像模型（imagegen 类）才能真正把封面渲染出来
 ```
 
 | 角色 | Agent | 是否内置 | 推荐模型 | 干什么 |
 |---|---|---|---|---|
-| **Director（总指挥）** | `xhs-workflow`（`SKILL.md`） | 内置 | 任意 | 路由、策略、文案、合规、模板 |
-| 文案子 Agent | `humanizer-xhs` | 内置 | 任意 | 去掉 AI / 公众号 / 营销味——强制**文案闸门** |
-| 封面子 Agent | `xiaohongshu-photo-cover` | 内置 | **Codex + GPT-5.5** | 把**真实照片**做成小红书封面（修图 + 撕纸描边 + 贴纸标题） |
+| **Director（总指挥）** | `xhs-workflow`（`SKILL.md`） | 内置 | 任意 | 路由、平台策略、合规、发布、闸门 |
+| 文案子 Agent | `xhs-copy` | 内置 | 任意 | 全部文案：标题、正文、轮播 / 观点文、标签、钩子 + humanizer **文案闸门** |
+| 图像子 Agent | `xhs-image` | 内置 | **Codex + GPT-5.5**（编辑模式） | 封面——编辑**真实照片**（保真五官）或从零生成 |
 | 视频子 Agent | `video-use` | 外部（`./install.sh`） | 任意 + FFmpeg | 剪素材、转写、烧字幕 |
 | 动效 / 视觉子 Agent | `hyperframes`（+ 适配器） | 外部（`./install.sh`） | 任意 + Node ≥ 22 | HTML 视频、封面单帧、动效、转场 |
 
 **两道强制闸门**
 
-- **文案闸门** —— 所有最终的标题 / 正文 / 标签 / 文案 / 首评都要过 `dependencies/humanizer-xhs/SKILL.md`。
+- **文案闸门** —— 所有最终的标题 / 正文 / 标签 / 文案 / 首评都要过 `dependencies/xhs-copy/humanizer/SKILL.md`（由 `xhs-copy` 执行）。
 - **视觉闸门** —— 所有最终的封面 / 轮播 / 视频画面都要过 `rules/visual-rules.md`。
 
 **依赖自检（preflight）** —— 在派发给任何子 Agent 之前，Director 会先检查它装没装。**没装就不会闷头失败、也不会伪造产出**，而是告诉你卡在哪、引导你去安装或替换。协议和注册表见 `rules/dependencies.md`。
@@ -68,7 +69,7 @@
 ## 里面有什么
 
 - **入口路由**：原始视频、想法、草稿、照片 / 截图、诊断、从零规划
-- **内置 humanizer-xhs 依赖**：降 AI 味、降公众号腔、降通用营销味
+- **内置 `xhs-copy` 子 Agent**：掌管全部文案生产，内含 humanizer 闸门降 AI 味、降公众号腔、降通用营销味
 - **视觉质量规则** + 可扩展的视觉技能注册表
 - **2026 CES 公式**（点赞×1 + 收藏×1 + 评论×4 + 转发×4 + 关注×8）及其打法含义
 - **分层冷启动闸门**（1 小时 CTR、3 小时完播率、3–9 天长尾、10 天+ 搜索）
@@ -90,9 +91,9 @@
 
 | 技能 | 作用 |
 |---|---|
-| `xhs-workflow`（本仓库） | Director：策略 + 文案 + 路由大脑 |
-| `dependencies/humanizer-xhs/` | 文案去 AI 味闸门（强制文案检查） |
-| `dependencies/xiaohongshu-photo-cover/` | 真实照片 → 小红书封面。首选 **Codex + GPT-5.5** 跑，见其 `README.md` |
+| `xhs-workflow`（本仓库） | Director：路由 + 策略 + 合规大脑 |
+| `dependencies/xhs-copy/` | 全部文案生产（标题/正文/标签/钩子）+ humanizer 文案闸门 |
+| `dependencies/xhs-image/` | 小红书封面——编辑真实照片 或 从零生成。首选 **Codex + GPT-5.5** 跑，见其 `README.md` |
 
 ### 🔵 外部——用 `./install.sh` 安装（或手动）
 
@@ -105,7 +106,7 @@
 
 | 能力 | 技能 | 说明 |
 |---|---|---|
-| 文生图 / 参考图编辑 | `imagegen` | 用你手上任意图像模型 / MCP。`xiaohongshu-photo-cover` 要靠它才能真正出图 |
+| 文生图 / 参考图编辑 | `imagegen` | 用你手上任意图像模型 / MCP。`xhs-image` 要靠它才能真正出图 |
 | 多页卡片排版 | `presentations` | 或退回用 `hyperframes`，或只给每页文案 + 排版备注 |
 
 ### 一条命令装好外部技能

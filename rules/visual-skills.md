@@ -11,8 +11,9 @@ Status: 🔵 Public (installable) · 🟡 Optional/substitutable (no fixed publi
 | Need | Preferred skill/tool | Status |
 |---|---|---|
 | Generate image素材 or background | `imagegen` | 🟡 bring-your-own image model |
-| Design multi-page Xiaohongshu carousel cards | `presentations`, or `xiaohongshu-photo-cover` per photo | 🟡 |
-| Cover from a REAL photo (smart retouch + torn-paper outline + doodles + sticker title) | `xiaohongshu-photo-cover` (in `skills/xiaohongshu-photo-cover/`): feed the real photo as reference image + its prompt to an image gen/edit tool | 🟡 no public install; needs an image model |
+| Design multi-page Xiaohongshu carousel cards | `presentations`, or `xhs-image` per photo | 🟢 bundled / 🟡 |
+| Cover from a REAL photo (smart retouch + torn-paper outline + doodles + sticker title) | `xhs-image` edit mode (in `dependencies/xhs-image/`): feed the real photo as reference image + its prompt to an image gen/edit tool | 🟢 bundled; needs an image-editing model |
+| Cover with NO real face (concept / illustration / big-text) | `xhs-image` generate mode (in `dependencies/xhs-image/`): text-to-image from the brief | 🟢 bundled; needs an image model |
 | Video title cards / subtitles / motion package | `hyperframes` | 🔵 `npx skills add heygen-com/hyperframes` |
 | Audio transcription / subtitles / voice workflow | `hyperframes-media` or `video-use` if installed | 🔵 / 🔵 |
 | Timeline-heavy motion | `gsap` | 🔵 (ships with hyperframes install) |
@@ -21,4 +22,4 @@ Status: 🔵 Public (installable) · 🟡 Optional/substitutable (no fixed publi
 
 ## Rule
 
-Do not let the visual skill invent final copy. The source of truth for title, cover text, caption, and tags is `skills/xhs-workflow/SKILL.md`.
+Do not let the visual skill invent final copy. The source of truth for title, cover text, caption, and tags is the `xhs-copy` sub-agent (`dependencies/xhs-copy/SKILL.md`).

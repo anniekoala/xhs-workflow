@@ -14,40 +14,41 @@ It upgrades a flat "copywriting prompt" into a full workflow router:
 
 ## Agent structure
 
-This skill is a **Director + specialist sub-agents** setup. The **Director** is the brain (`SKILL.md`). It never cuts video or renders pixels itself — it routes the request, owns all strategy and copy, and **delegates** production to specialist sub-agents, gating their output through two mandatory quality checks.
+This skill is a **Director + specialist sub-agents** setup. The **Director** is the brain (`SKILL.md`). It never writes the copy or renders pixels itself — it routes the request, owns platform strategy + compliance + publishing, and **delegates** copy to `xhs-copy` and visuals/video to the production sub-agents, gating every output through two mandatory quality checks.
 
 ```
               ┌──────────────────────────────────────────────┐
               │  DIRECTOR — xhs-workflow / SKILL.md           │
-              │  intake routing · strategy · titles/body/tags │
-              │  compliance red-lines · templates · diagnostics│
+              │  intake routing · platform strategy           │
+              │  compliance red-lines · publishing · 2 gates  │
               └───────────────────┬──────────────────────────┘
                                   │  delegates
                                   │  (after dependency preflight)
         ┌───────────────┬─────────┴────────┬──────────────────┐
         ▼               ▼                  ▼                  ▼
-  ✍️ humanizer-xhs  🖼️ xiaohongshu-    🎬 video-use      🎞️ hyperframes
-   copy de-AI        photo-cover        raw footage →     HTML video /
-   (bundled)         real-photo cover   cut + burn-in     cover frame /
-                     (bundled)          subtitles (ext)   motion (ext)
-        │               │                  │                  │
-        └─── copy gate ─┘                  └── visual gate ────┘
-        (humanizer-xhs)            (rules/visual-rules.md)
+  ✍️ xhs-copy       🖼️ xhs-image       🎬 video-use      🎞️ hyperframes
+   titles/body/      covers: edit a     raw footage →     HTML video /
+   tags/hooks        real photo OR      cut + burn-in     cover frame /
+   + humanizer       generate fresh     subtitles (ext)   motion (ext)
+   (bundled)         (bundled)
+        │               └──────────────────┴──────────────────┘
+    copy gate                       visual gate
+ (xhs-copy/humanizer)            (rules/visual-rules.md)
 
   + bring-your-own image model (imagegen-class) to actually render covers
 ```
 
 | Role | Agent | Ships | Best model | Job |
 |---|---|---|---|---|
-| **Director** | `xhs-workflow` (`SKILL.md`) | bundled | any | Routing, strategy, copy, compliance, templates |
-| Copy sub-agent | `humanizer-xhs` | bundled | any | Strip AI / public-account / marketing tone — the mandatory **copy gate** |
-| Cover sub-agent | `xiaohongshu-photo-cover` | bundled | **Codex + GPT-5.5** | Turn a **real photo** into a 小红书 cover (retouch + torn-paper outline + sticker title) |
+| **Director** | `xhs-workflow` (`SKILL.md`) | bundled | any | Routing, platform strategy, compliance, publishing, gates |
+| Copy sub-agent | `xhs-copy` | bundled | any | All copy: titles, body, carousel/opinion, tags, hooks + the humanizer **copy gate** |
+| Image sub-agent | `xhs-image` | bundled | **Codex + GPT-5.5** (edit mode) | Covers — edit a **real photo** (identity-preserving) or generate one from scratch |
 | Video sub-agent | `video-use` | external (`./install.sh`) | any + FFmpeg | Cut footage, transcribe, burn-in subtitles |
 | Motion / visual sub-agent | `hyperframes` (+ adapters) | external (`./install.sh`) | any + Node ≥ 22 | HTML video, cover frame, motion, transitions |
 
 **Two mandatory gates**
 
-- **Copy gate** — every final title / body / tag / caption / first comment passes `dependencies/humanizer-xhs/SKILL.md`.
+- **Copy gate** — every final title / body / tag / caption / first comment passes `dependencies/xhs-copy/humanizer/SKILL.md` (run by `xhs-copy`).
 - **Visual gate** — every final cover / carousel / video visual passes `rules/visual-rules.md`.
 
 **Dependency preflight** — before delegating to any sub-agent, the Director checks whether it is installed. If it is missing, the Director tells you what's blocked and guides you through installing or substituting it — it never fails silently or fakes the output. Protocol and registry: `rules/dependencies.md`.
@@ -68,7 +69,7 @@ When this skill is installed, your agent applies it automatically whenever you a
 ## What's inside
 
 - **Intake router** for raw video, ideas, drafts, photos/screenshots, diagnostics, and from-scratch planning
-- **Bundled humanizer-xhs dependency** for reducing AI flavor, public-account tone, and generic marketing copy
+- **Bundled `xhs-copy` sub-agent** owning all text production, with a humanizer gate that strips AI flavor, public-account tone, and generic marketing copy
 - **Visual quality rules** and an extensible visual skill registry
 - **2026 CES formula** (点赞×1 + 收藏×1 + 评论×4 + 转发×4 + 关注×8) and its tactical implications
 - **Tiered cold-start gates** (1h CTR, 3h 完播率, 3–9d long tail, 10d+ search)
@@ -90,9 +91,9 @@ When this skill is installed, your agent applies it automatically whenever you a
 
 | Skill | What it does |
 |---|---|
-| `xhs-workflow` (this repo) | Director: strategy + copy + routing brain |
-| `dependencies/humanizer-xhs/` | Copy de-AI gate (mandatory copy check) |
-| `dependencies/xiaohongshu-photo-cover/` | Real photo → 小红书 cover. Best run in **Codex + GPT-5.5** — see its `README.md` |
+| `xhs-workflow` (this repo) | Director: routing + strategy + compliance brain |
+| `dependencies/xhs-copy/` | All copy production (titles/body/tags/hooks) + humanizer copy gate |
+| `dependencies/xhs-image/` | 小红书 covers — edit a real photo or generate from scratch. Best run in **Codex + GPT-5.5** — see its `README.md` |
 
 ### 🔵 External — install with `./install.sh` (or by hand)
 
@@ -105,7 +106,7 @@ When this skill is installed, your agent applies it automatically whenever you a
 
 | Capability | Skill | Note |
 |---|---|---|
-| Image generation / reference-image edit | `imagegen` | Use whatever image model/MCP you have. `xiaohongshu-photo-cover` needs one of these to actually render |
+| Image generation / reference-image edit | `imagegen` | Use whatever image model/MCP you have. `xhs-image` needs one of these to actually render |
 | Multi-page card layout | `presentations` | Or fall back to `hyperframes`, or deliver per-slide copy + layout note |
 
 ### One-command install of external skills

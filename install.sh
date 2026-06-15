@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Install the EXTERNAL companion skills referenced by xhs-workflow.
 #
-# Bundled skills (xhs-workflow itself, humanizer-xhs, xiaohongshu-photo-cover)
+# Bundled skills (xhs-workflow itself, xhs-copy + its humanizer, xhs-image)
 # already ship in this repo and need NO install.
 #
 # This script only fetches the third-party skills that live upstream:
@@ -43,5 +43,5 @@ else
 fi
 
 echo
-ok "Done. Bring-your-own image generation (imagegen / xiaohongshu-photo-cover rendering)"
+ok "Done. Bring-your-own image generation (imagegen / xhs-image rendering)"
 ok "needs an image-editing model you supply — recommended: Codex + GPT-5.5."
